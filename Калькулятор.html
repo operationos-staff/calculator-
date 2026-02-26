@@ -1,0 +1,1788 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Калькулятор туров — Пханг Нга</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --primary: #0F4C75;
+    --primary-light: #1B6CA8;
+    --accent: #F4A621;
+    --accent-light: #FFB84D;
+    --success: #10B981;
+    --danger: #EF4444;
+    --bg: #F0F5FA;
+    --card: #FFFFFF;
+    --text: #1E293B;
+    --text-light: #64748B;
+    --border: #E2E8F0;
+    --shadow: 0 4px 24px rgba(15,76,117,0.10);
+    --shadow-lg: 0 8px 40px rgba(15,76,117,0.15);
+    --radius: 16px;
+    --radius-sm: 10px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Inter', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+  }
+
+  /* ===== HEADER ===== */
+  .header {
+    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+    color: white;
+    padding: 0;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: 0 2px 20px rgba(15,76,117,0.3);
+  }
+  .header-inner {
+    max-width: 1280px;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 24px;
+    gap: 16px;
+  }
+  .logo {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    text-decoration: none;
+    color: white;
+  }
+  .logo-icon {
+    width: 44px; height: 44px;
+    background: rgba(255,255,255,0.2);
+    border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 22px;
+  }
+  .logo-text { line-height: 1.2; }
+  .logo-title { font-size: 18px; font-weight: 700; letter-spacing: -0.3px; }
+  .logo-sub { font-size: 12px; opacity: 0.75; font-weight: 400; }
+  .header-nav { display: flex; gap: 8px; align-items: center; }
+  .btn-nav {
+    padding: 8px 18px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    border: none;
+    transition: all 0.2s;
+    display: flex; align-items: center; gap: 6px;
+  }
+  .btn-nav-outline {
+    background: rgba(255,255,255,0.15);
+    color: white;
+    border: 1px solid rgba(255,255,255,0.3);
+  }
+  .btn-nav-outline:hover { background: rgba(255,255,255,0.25); }
+  .btn-nav-accent {
+    background: var(--accent);
+    color: var(--primary);
+    font-weight: 700;
+  }
+  .btn-nav-accent:hover { background: var(--accent-light); transform: translateY(-1px); }
+
+  /* ===== LAYOUT ===== */
+  .main {
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 32px 24px;
+    display: grid;
+    grid-template-columns: 1fr 360px;
+    gap: 24px;
+  }
+  @media(max-width:900px){ .main{ grid-template-columns:1fr; } }
+
+  /* ===== PAGES ===== */
+  .page { display: none; }
+  .page.active { display: block; }
+
+  /* ===== CARDS ===== */
+  .card {
+    background: var(--card);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    overflow: hidden;
+  }
+  .card-header {
+    padding: 20px 24px 16px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .card-header-icon {
+    width: 40px; height: 40px;
+    background: linear-gradient(135deg, var(--primary), var(--primary-light));
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px;
+    color: white;
+  }
+  .card-header-text h2 { font-size: 16px; font-weight: 700; color: var(--text); }
+  .card-header-text p { font-size: 12px; color: var(--text-light); margin-top: 2px; }
+  .card-body { padding: 24px; }
+
+  /* ===== PACKAGE SELECTION ===== */
+  .packages-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 24px;
+  }
+  @media(max-width:600px){ .packages-grid{ grid-template-columns:1fr; } }
+  .pkg-card {
+    border: 2px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 16px;
+    cursor: pointer;
+    transition: all 0.2s;
+    position: relative;
+    background: white;
+  }
+  .pkg-card:hover { border-color: var(--primary-light); box-shadow: 0 4px 16px rgba(15,76,117,0.1); }
+  .pkg-card.selected {
+    border-color: var(--primary);
+    background: linear-gradient(135deg, #EBF5FF, #DBEAFE);
+  }
+  .pkg-card.selected::after {
+    content: '✓';
+    position: absolute;
+    top: 10px; right: 12px;
+    background: var(--primary);
+    color: white;
+    width: 22px; height: 22px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 12px; font-weight: 700;
+  }
+  .pkg-badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 8px;
+    background: var(--bg);
+    color: var(--text-light);
+  }
+  .pkg-card.vip .pkg-badge { background: linear-gradient(135deg,#FFD700,#FFA500); color: white; }
+  .pkg-name { font-size: 14px; font-weight: 600; color: var(--text); margin-bottom: 4px; line-height: 1.4; }
+  .pkg-note { font-size: 11px; color: var(--text-light); margin-bottom: 10px; }
+  .pkg-price { font-size: 20px; font-weight: 800; color: var(--primary); }
+  .pkg-price span { font-size: 12px; font-weight: 500; color: var(--text-light); }
+
+  /* ===== OPTIONS SECTION ===== */
+  .section-title {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--border);
+  }
+  .section-title .badge {
+    background: var(--primary);
+    color: white;
+    padding: 2px 8px;
+    border-radius: 20px;
+    font-size: 11px;
+  }
+
+  /* ===== CATEGORY FILTER ===== */
+  .cat-filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 16px;
+  }
+  .cat-btn {
+    padding: 6px 14px;
+    border-radius: 20px;
+    border: 1px solid var(--border);
+    background: white;
+    color: var(--text-light);
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex; align-items: center; gap: 5px;
+  }
+  .cat-btn:hover, .cat-btn.active {
+    background: var(--primary);
+    color: white;
+    border-color: var(--primary);
+  }
+
+  /* ===== OPTIONS TABLE ===== */
+  .options-table { width: 100%; border-collapse: collapse; }
+  .options-table thead th {
+    background: var(--bg);
+    padding: 10px 12px;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-light);
+    text-align: left;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border-bottom: 1px solid var(--border);
+  }
+  .options-table thead th:last-child,
+  .options-table thead th:nth-last-child(2),
+  .options-table thead th:nth-last-child(3) { text-align: center; }
+  .opt-row {
+    border-bottom: 1px solid #F1F5F9;
+    transition: background 0.15s;
+  }
+  .opt-row:hover { background: #F8FAFF; }
+  .opt-row.has-qty { background: #F0FDF4; }
+  .opt-row td { padding: 10px 12px; vertical-align: middle; }
+  .opt-name { font-size: 13px; font-weight: 500; color: var(--text); }
+  .opt-cat-tag {
+    display: inline-block;
+    font-size: 10px;
+    padding: 1px 6px;
+    border-radius: 3px;
+    font-weight: 500;
+    margin-top: 2px;
+  }
+  .opt-price { font-size: 13px; font-weight: 600; color: var(--primary); text-align: center; }
+  .opt-price-free { color: var(--success); font-weight: 600; font-size: 12px; }
+  .qty-input {
+    width: 60px;
+    padding: 6px 8px;
+    border: 1.5px solid var(--border);
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 600;
+    text-align: center;
+    outline: none;
+    transition: border-color 0.2s;
+    background: white;
+  }
+  .qty-input:focus { border-color: var(--primary); }
+  .qty-input::-webkit-inner-spin-button { -webkit-appearance: none; }
+  .opt-sum { font-size: 13px; font-weight: 700; color: var(--primary); text-align: center; min-width: 70px; }
+  .opt-sum.zero { color: var(--text-light); font-weight: 400; }
+
+  /* ===== SIDEBAR / SUMMARY ===== */
+  .sidebar { display: flex; flex-direction: column; gap: 16px; }
+  .client-form .field { margin-bottom: 14px; }
+  .client-form label {
+    display: block;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-light);
+    margin-bottom: 5px;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+  }
+  .client-form input, .client-form select, .client-form textarea {
+    width: 100%;
+    padding: 10px 14px;
+    border: 1.5px solid var(--border);
+    border-radius: 8px;
+    font-size: 13px;
+    font-family: inherit;
+    outline: none;
+    transition: border-color 0.2s;
+    background: white;
+    color: var(--text);
+  }
+  .client-form input:focus, .client-form select:focus, .client-form textarea:focus {
+    border-color: var(--primary);
+  }
+  .client-form textarea { resize: vertical; min-height: 70px; }
+
+  /* ===== SUMMARY BOX ===== */
+  .summary-lines { margin-bottom: 16px; }
+  .sum-line {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 8px 0;
+    border-bottom: 1px dashed var(--border);
+    font-size: 13px;
+  }
+  .sum-line:last-child { border-bottom: none; }
+  .sum-line .label { color: var(--text-light); }
+  .sum-line .val { font-weight: 600; color: var(--text); }
+  .sum-line .val.pos { color: var(--success); }
+  .sum-total {
+    background: linear-gradient(135deg, var(--primary), var(--primary-light));
+    color: white;
+    border-radius: var(--radius-sm);
+    padding: 16px;
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 16px;
+  }
+  .sum-total .t-label { font-size: 14px; font-weight: 600; opacity: 0.9; }
+  .sum-total .t-amount { font-size: 24px; font-weight: 800; }
+  .sum-total .t-cur { font-size: 12px; opacity: 0.8; }
+
+  /* ===== MARKUP (admin only) ===== */
+  .markup-row {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 10px;
+    margin-bottom: 12px;
+  }
+  .markup-field { position: relative; }
+  .markup-field input {
+    width: 100%;
+    padding: 9px 32px 9px 12px;
+    border: 1.5px solid var(--border);
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    outline: none;
+  }
+  .markup-field input:focus { border-color: var(--accent); }
+  .markup-field .suffix {
+    position: absolute; right: 10px; top: 50%; transform: translateY(-50%);
+    font-size: 12px; font-weight: 700; color: var(--text-light);
+  }
+  .markup-label { font-size: 11px; color: var(--text-light); margin-bottom: 4px; font-weight: 600; text-transform: uppercase; }
+
+  /* ===== ACTION BUTTONS ===== */
+  .action-btns { display: flex; flex-direction: column; gap: 10px; }
+  .btn {
+    width: 100%;
+    padding: 13px 20px;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    border: none;
+    transition: all 0.2s;
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+    font-family: inherit;
+  }
+  .btn-primary {
+    background: linear-gradient(135deg, var(--primary), var(--primary-light));
+    color: white;
+    box-shadow: 0 4px 15px rgba(15,76,117,0.3);
+  }
+  .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(15,76,117,0.4); }
+  .btn-accent {
+    background: linear-gradient(135deg, var(--accent), var(--accent-light));
+    color: white;
+    box-shadow: 0 4px 15px rgba(244,166,33,0.3);
+  }
+  .btn-accent:hover { transform: translateY(-1px); }
+  .btn-outline {
+    background: white;
+    color: var(--primary);
+    border: 2px solid var(--primary);
+  }
+  .btn-outline:hover { background: var(--primary); color: white; }
+  .btn-success {
+    background: linear-gradient(135deg, var(--success), #059669);
+    color: white;
+  }
+  .btn-success:hover { transform: translateY(-1px); }
+  .btn-gray {
+    background: var(--bg);
+    color: var(--text-light);
+    border: 1px solid var(--border);
+  }
+  .btn-gray:hover { background: var(--border); }
+
+  /* ===== SELECTED OPTIONS PREVIEW ===== */
+  .selected-opts { display: flex; flex-direction: column; gap: 6px; }
+  .sel-opt {
+    display: flex; justify-content: space-between; align-items: flex-start;
+    background: #F8FAFF;
+    border: 1px solid #DBEAFE;
+    border-radius: 8px;
+    padding: 8px 12px;
+    font-size: 12px;
+  }
+  .sel-opt-name { font-weight: 500; color: var(--text); flex: 1; }
+  .sel-opt-detail { font-size: 11px; color: var(--text-light); margin-top: 2px; }
+  .sel-opt-price { font-weight: 700; color: var(--primary); white-space: nowrap; margin-left: 8px; }
+
+  /* ===== SHARE LINK ===== */
+  .link-box {
+    display: flex; gap: 8px;
+    margin-top: 8px;
+  }
+  .link-input {
+    flex: 1;
+    padding: 9px 12px;
+    border: 1.5px solid var(--border);
+    border-radius: 8px;
+    font-size: 12px;
+    background: var(--bg);
+    outline: none;
+    color: var(--text-light);
+  }
+  .btn-copy {
+    padding: 9px 16px;
+    border-radius: 8px;
+    background: var(--primary);
+    color: white;
+    border: none;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 600;
+    transition: all 0.2s;
+  }
+  .btn-copy:hover { background: var(--primary-light); }
+
+  /* ===== MODAL ===== */
+  .modal-overlay {
+    display: none;
+    position: fixed; inset: 0;
+    background: rgba(15,76,117,0.5);
+    backdrop-filter: blur(4px);
+    z-index: 1000;
+    align-items: center; justify-content: center;
+  }
+  .modal-overlay.open { display: flex; }
+  .modal {
+    background: white;
+    border-radius: var(--radius);
+    padding: 32px;
+    max-width: 520px;
+    width: 90%;
+    box-shadow: var(--shadow-lg);
+    position: relative;
+    max-height: 90vh;
+    overflow-y: auto;
+  }
+  .modal-close {
+    position: absolute; top: 16px; right: 16px;
+    background: var(--bg); border: none; cursor: pointer;
+    width: 32px; height: 32px; border-radius: 50%;
+    font-size: 16px; display: flex; align-items: center; justify-content: center;
+    color: var(--text-light);
+  }
+  .modal-close:hover { background: var(--border); }
+  .modal-title { font-size: 20px; font-weight: 700; margin-bottom: 8px; color: var(--text); }
+  .modal-sub { font-size: 13px; color: var(--text-light); margin-bottom: 24px; }
+
+  /* ===== TEXT FORMAT MODAL ===== */
+  .text-output {
+    background: var(--bg);
+    border-radius: 10px;
+    padding: 16px;
+    font-size: 13px;
+    line-height: 1.7;
+    white-space: pre-wrap;
+    font-family: 'Courier New', monospace;
+    max-height: 350px;
+    overflow-y: auto;
+    color: var(--text);
+    border: 1px solid var(--border);
+    margin-bottom: 16px;
+  }
+
+  /* ===== ADMIN PANEL ===== */
+  #page-admin .main-inner {
+    max-width: 1100px; margin: 0 auto;
+  }
+  .admin-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  @media(max-width:700px){ .admin-grid{ grid-template-columns:1fr; } }
+  .price-editor td { padding: 8px 10px; }
+  .price-editor input {
+    width: 100%; padding: 6px 8px; border: 1.5px solid var(--border);
+    border-radius: 6px; font-size: 12px; text-align: right; font-weight: 600;
+    outline: none;
+  }
+  .price-editor input:focus { border-color: var(--accent); }
+  .price-editor .name-col { font-size: 12px; font-weight: 500; }
+  .price-editor th {
+    background: var(--bg); font-size: 10px; font-weight: 700;
+    color: var(--text-light); text-transform: uppercase; padding: 8px 10px;
+  }
+  .admin-tabs { display: flex; gap: 4px; margin-bottom: 20px; }
+  .admin-tab {
+    padding: 9px 18px; border-radius: 8px; border: 1px solid var(--border);
+    background: white; font-size: 13px; font-weight: 500; cursor: pointer;
+    transition: all 0.2s;
+  }
+  .admin-tab.active { background: var(--primary); color: white; border-color: var(--primary); }
+  .admin-tab-content { display: none; }
+  .admin-tab-content.active { display: block; }
+
+  /* ===== TOAST ===== */
+  .toast {
+    position: fixed; bottom: 24px; right: 24px;
+    background: var(--text); color: white;
+    padding: 12px 20px; border-radius: 10px;
+    font-size: 13px; font-weight: 500;
+    box-shadow: var(--shadow-lg);
+    z-index: 9999;
+    display: flex; align-items: center; gap: 8px;
+    transform: translateY(100px); opacity: 0;
+    transition: all 0.3s;
+  }
+  .toast.show { transform: translateY(0); opacity: 1; }
+  .toast.success { background: var(--success); }
+  .toast.error { background: var(--danger); }
+
+  /* ===== PRINT / PDF ===== */
+  .pdf-content {
+    font-family: 'Inter', sans-serif;
+    padding: 32px;
+    max-width: 700px;
+    margin: 0 auto;
+    color: #1E293B;
+  }
+  .pdf-logo-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }
+  .pdf-company { font-size: 20px; font-weight: 800; color: #0F4C75; }
+  .pdf-date { font-size: 12px; color: #64748B; }
+  .pdf-title { font-size: 22px; font-weight: 700; margin-bottom: 4px; }
+  .pdf-client-info { background: #F0F5FA; border-radius: 10px; padding: 16px; margin-bottom: 24px; }
+  .pdf-client-row { display: flex; gap: 8px; font-size: 13px; margin-bottom: 4px; }
+  .pdf-client-key { font-weight: 600; color: #64748B; min-width: 80px; }
+  .pdf-table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
+  .pdf-table th { background: #0F4C75; color: white; padding: 10px 12px; font-size: 12px; text-align: left; }
+  .pdf-table td { padding: 9px 12px; border-bottom: 1px solid #E2E8F0; font-size: 12px; }
+  .pdf-table tr:nth-child(even) td { background: #F8FAFF; }
+  .pdf-total { background: #0F4C75; color: white; border-radius: 10px; padding: 16px 20px; display: flex; justify-content: space-between; align-items: center; }
+  .pdf-total-label { font-size: 14px; font-weight: 600; }
+  .pdf-total-amount { font-size: 26px; font-weight: 800; }
+
+  /* ===== RESPONSIVE ===== */
+  @media(max-width:640px) {
+    .header-inner { padding: 12px 16px; }
+    .logo-sub { display: none; }
+    .main { padding: 16px; gap: 16px; }
+    .card-body { padding: 16px; }
+  }
+
+  /* ===== ROLE BADGE ===== */
+  .role-badge {
+    display: inline-flex; align-items: center; gap: 5px;
+    padding: 4px 10px; border-radius: 20px;
+    font-size: 11px; font-weight: 600;
+  }
+  .role-manager { background: #DBEAFE; color: #1D4ED8; }
+  .role-booking { background: #FEF3C7; color: #92400E; }
+  .role-admin { background: #FCE7F3; color: #9D174D; }
+
+  .empty-state {
+    text-align: center; padding: 32px; color: var(--text-light);
+  }
+  .empty-state .icon { font-size: 40px; margin-bottom: 8px; }
+  .empty-state p { font-size: 13px; }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: #F1F5F9; }
+  ::-webkit-scrollbar-thumb { background: #CBD5E1; border-radius: 3px; }
+
+  .divider { height: 1px; background: var(--border); margin: 16px 0; }
+
+  .info-chip {
+    display: inline-flex; align-items: center; gap: 5px;
+    background: #EBF5FF; color: #1D4ED8;
+    padding: 4px 10px; border-radius: 6px;
+    font-size: 11px; font-weight: 600;
+  }
+</style>
+</head>
+<body>
+
+<!-- ===== HEADER ===== -->
+<header class="header">
+  <div class="header-inner">
+    <a class="logo" href="#" onclick="showPage('calculator')">
+      <div class="logo-icon">🌴</div>
+      <div class="logo-text">
+        <div class="logo-title">Пханг Нга Туры</div>
+        <div class="logo-sub">Калькулятор туров</div>
+      </div>
+    </a>
+    <nav class="header-nav">
+      <span id="role-display" class="role-badge role-manager">👤 Менеджер</span>
+      <button class="btn-nav btn-nav-outline" onclick="showPage('calculator')">🧮 Калькулятор</button>
+      <button class="btn-nav btn-nav-outline" id="btn-admin-nav" onclick="showAdminLogin()" style="display:none">⚙️ Админ</button>
+      <button class="btn-nav btn-nav-accent" onclick="showAdminLogin()">🔐 Войти</button>
+    </nav>
+  </div>
+</header>
+
+<!-- ===== LOGIN MODAL ===== -->
+<div class="modal-overlay" id="loginModal">
+  <div class="modal" style="max-width:400px">
+    <button class="modal-close" onclick="closeModal('loginModal')">✕</button>
+    <div class="modal-title">🔐 Вход в систему</div>
+    <div class="modal-sub">Выберите роль и введите пароль для доступа</div>
+    <div class="client-form">
+      <div class="field">
+        <label>Роль</label>
+        <select id="login-role">
+          <option value="manager">👤 Менеджер по продажам</option>
+          <option value="booking">📋 Отдел бронирования</option>
+          <option value="admin">⚙️ Администратор</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Пароль</label>
+        <input type="password" id="login-pass" placeholder="Введите пароль..." onkeyup="if(event.key==='Enter')doLogin()">
+        <div style="font-size:11px;color:#999;margin-top:4px">Demo: manager / booking / admin</div>
+      </div>
+      <button class="btn btn-primary" onclick="doLogin()">Войти →</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== TEXT FORMAT MODAL ===== -->
+<div class="modal-overlay" id="textModal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('textModal')">✕</button>
+    <div class="modal-title">📄 Текстовый формат</div>
+    <div class="modal-sub">Скопируйте текст для отправки клиенту через мессенджер</div>
+    <div class="text-output" id="textOutput"></div>
+    <div style="display:flex;gap:10px">
+      <button class="btn btn-primary" style="flex:1" onclick="copyText()">📋 Скопировать</button>
+      <button class="btn btn-outline" style="flex:1" onclick="closeModal('textModal')">Закрыть</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== SHARE LINK MODAL ===== -->
+<div class="modal-overlay" id="linkModal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('linkModal')">✕</button>
+    <div class="modal-title">🔗 Ссылка для клиента</div>
+    <div class="modal-sub">Клиент увидит расчёт тура в красивом виде, без возможности редактирования</div>
+    <div style="margin-bottom:20px">
+      <div style="font-size:12px;font-weight:600;color:var(--text-light);margin-bottom:8px">ССЫЛКА</div>
+      <div class="link-box">
+        <input type="text" class="link-input" id="shareUrlInput" readonly>
+        <button class="btn-copy" onclick="copyLink()">📋 Копировать</button>
+      </div>
+    </div>
+    <div style="background:#F0FDF4;border-radius:10px;padding:14px;font-size:12px;color:#065F46;border:1px solid #A7F3D0">
+      ✅ Ссылка содержит все выбранные опции и данные клиента. При переходе клиент увидит полный расчёт.
+    </div>
+  </div>
+</div>
+
+<!-- ===== CLIENT VIEW MODAL ===== -->
+<div class="modal-overlay" id="clientViewModal">
+  <div class="modal" style="max-width:600px">
+    <button class="modal-close" onclick="closeModal('clientViewModal')">✕</button>
+    <div id="clientViewContent"></div>
+    <div style="display:flex;gap:10px;margin-top:20px">
+      <button class="btn btn-primary" style="flex:1" onclick="downloadClientPDF()">⬇️ Скачать PDF</button>
+      <button class="btn btn-gray" style="flex:1" onclick="closeModal('clientViewModal')">Закрыть</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== PAGES ===== -->
+
+<!-- PAGE: CALCULATOR -->
+<div class="page active" id="page-calculator">
+  <div class="main">
+    <!-- LEFT COLUMN -->
+    <div>
+      <!-- BASE PACKAGES -->
+      <div class="card" style="margin-bottom:20px">
+        <div class="card-header">
+          <div class="card-header-icon">🚐</div>
+          <div class="card-header-text">
+            <h2>Базовый пакет</h2>
+            <p>Выберите один пакет — основа тура</p>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="packages-grid" id="packagesGrid"></div>
+        </div>
+      </div>
+
+      <!-- OPTIONS -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-header-icon">🎯</div>
+          <div class="card-header-text">
+            <h2>Дополнительные опции</h2>
+            <p>Укажите количество взрослых и детей</p>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="cat-filters" id="catFilters"></div>
+          <div style="overflow-x:auto">
+            <table class="options-table">
+              <thead>
+                <tr>
+                  <th>Опция</th>
+                  <th style="text-align:center">Взр.</th>
+                  <th style="text-align:center">Дет.</th>
+                  <th style="text-align:center">Цена взр.</th>
+                  <th style="text-align:center">Цена дет.</th>
+                  <th style="text-align:center">Сумма</th>
+                </tr>
+              </thead>
+              <tbody id="optionsBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT COLUMN: SIDEBAR -->
+    <div class="sidebar">
+      <!-- CLIENT INFO -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-header-icon">👤</div>
+          <div class="card-header-text">
+            <h2>Данные клиента</h2>
+            <p>Заполните для формирования расчёта</p>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="client-form">
+            <div class="field">
+              <label>Имя клиента</label>
+              <input type="text" id="clientName" placeholder="Иван Иванов" oninput="updateSummary()">
+            </div>
+            <div class="field">
+              <label>Дата тура</label>
+              <input type="date" id="tourDate" oninput="updateSummary()">
+            </div>
+            <div class="field">
+              <label>Телефон / WhatsApp</label>
+              <input type="text" id="clientPhone" placeholder="+66 XX XXX XXXX" oninput="updateSummary()">
+            </div>
+            <div class="field">
+              <label>Примечание</label>
+              <textarea id="clientNote" placeholder="Особые пожелания..." oninput="updateSummary()"></textarea>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- MARKUP (booking/admin only) -->
+      <div class="card" id="markupCard" style="display:none">
+        <div class="card-header">
+          <div class="card-header-icon" style="background:linear-gradient(135deg,#F59E0B,#D97706)">💰</div>
+          <div class="card-header-text">
+            <h2>Наценка на тур</h2>
+            <p>Только для отдела бронирования</p>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="markup-row">
+            <div>
+              <div class="markup-label">Наценка %</div>
+              <div class="markup-field">
+                <input type="number" id="markupPct" value="0" min="0" max="200" oninput="updateSummary()">
+                <span class="suffix">%</span>
+              </div>
+            </div>
+            <div>
+              <div class="markup-label">Наценка бат</div>
+              <div class="markup-field">
+                <input type="number" id="markupBat" value="0" min="0" oninput="updateSummary()">
+                <span class="suffix">฿</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SUMMARY -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-header-icon" style="background:linear-gradient(135deg,#10B981,#059669)">💳</div>
+          <div class="card-header-text">
+            <h2>Итоговый расчёт</h2>
+            <p>Обновляется автоматически</p>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="summary-lines" id="summaryLines">
+            <div class="sum-line">
+              <span class="label">Базовый пакет</span>
+              <span class="val" id="sumPackage">0 ฿</span>
+            </div>
+            <div class="sum-line">
+              <span class="label">Доп. опции</span>
+              <span class="val" id="sumOptions">0 ฿</span>
+            </div>
+            <div class="sum-line" id="sumMarkupRow" style="display:none">
+              <span class="label">Наценка</span>
+              <span class="val pos" id="sumMarkup">0 ฿</span>
+            </div>
+          </div>
+          <div class="sum-total">
+            <div>
+              <div class="t-label">ИТОГО К ОПЛАТЕ</div>
+              <div class="t-cur">тайских бат (THB)</div>
+            </div>
+            <div class="t-amount" id="sumTotal">0 ฿</div>
+          </div>
+
+          <div style="margin-bottom:14px">
+            <div class="section-title" style="margin-bottom:10px">Выбранные опции</div>
+            <div id="selectedOptsList">
+              <div class="empty-state">
+                <div class="icon">🎯</div>
+                <p>Выберите пакет и добавьте опции</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="action-btns">
+            <button class="btn btn-primary" onclick="downloadPDF()">⬇️ Скачать PDF</button>
+            <button class="btn btn-accent" onclick="showTextFormat()">📱 Текстовый формат</button>
+            <button class="btn btn-success" onclick="generateLink()">🔗 Ссылка для клиента</button>
+            <button class="btn btn-gray" onclick="resetAll()">🔄 Сбросить всё</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- PAGE: ADMIN -->
+<div class="page" id="page-admin">
+  <div style="max-width:1100px;margin:0 auto;padding:32px 24px">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:24px">
+      <div>
+        <h1 style="font-size:22px;font-weight:800;margin-bottom:4px">⚙️ Панель администратора</h1>
+        <p style="font-size:13px;color:var(--text-light)">Управление ценами, наценками и настройками калькулятора</p>
+      </div>
+      <button class="btn btn-primary" onclick="saveAdminSettings()" style="width:auto;padding:12px 24px">💾 Сохранить изменения</button>
+    </div>
+
+    <div class="admin-tabs">
+      <button class="admin-tab active" onclick="switchAdminTab('prices')">💰 Цены пакетов</button>
+      <button class="admin-tab" onclick="switchAdminTab('options')">🎯 Цены опций</button>
+      <button class="admin-tab" onclick="switchAdminTab('markup')">📊 Наценки</button>
+      <button class="admin-tab" onclick="switchAdminTab('access')">🔐 Доступы</button>
+    </div>
+
+    <!-- TAB: PRICES -->
+    <div class="admin-tab-content active" id="tab-prices">
+      <div class="card">
+        <div class="card-header">
+          <div class="card-header-icon">🚐</div>
+          <div class="card-header-text"><h2>Базовые пакеты</h2><p>Редактирование цен и описаний</p></div>
+        </div>
+        <div class="card-body" style="overflow-x:auto">
+          <table class="price-editor" style="width:100%;border-collapse:collapse">
+            <thead><tr>
+              <th>№</th><th>Название пакета</th><th>Базовая цена (฿)</th><th>Примечание</th>
+            </tr></thead>
+            <tbody id="adminPackagesTable"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB: OPTIONS -->
+    <div class="admin-tab-content" id="tab-options">
+      <div class="card">
+        <div class="card-header">
+          <div class="card-header-icon">🎯</div>
+          <div class="card-header-text"><h2>Дополнительные опции</h2><p>Цены для взрослых и детей</p></div>
+        </div>
+        <div class="card-body" style="overflow-x:auto">
+          <table class="price-editor" style="width:100%;border-collapse:collapse">
+            <thead><tr>
+              <th>№</th><th>Название опции</th><th>Взрослый (฿)</th><th>Ребёнок (฿)</th><th>Категория</th>
+            </tr></thead>
+            <tbody id="adminOptionsTable"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB: MARKUP -->
+    <div class="admin-tab-content" id="tab-markup">
+      <div class="card">
+        <div class="card-header">
+          <div class="card-header-icon" style="background:linear-gradient(135deg,#F59E0B,#D97706)">📊</div>
+          <div class="card-header-text"><h2>Настройки наценок</h2><p>Глобальные наценки по умолчанию</p></div>
+        </div>
+        <div class="card-body">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;max-width:500px">
+            <div>
+              <div class="markup-label">Наценка по умолчанию %</div>
+              <div class="markup-field">
+                <input type="number" id="defaultMarkupPct" value="0" min="0" max="200" onchange="saveToStorage()">
+                <span class="suffix">%</span>
+              </div>
+            </div>
+            <div>
+              <div class="markup-label">Наценка по умолчанию бат</div>
+              <div class="markup-field">
+                <input type="number" id="defaultMarkupBat" value="0" min="0" onchange="saveToStorage()">
+                <span class="suffix">฿</span>
+              </div>
+            </div>
+          </div>
+          <div style="margin-top:20px;padding:16px;background:#FEF3C7;border-radius:10px;font-size:13px;color:#92400E">
+            ⚠️ Эти значения будут автоматически подставляться в калькулятор для отдела бронирования
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB: ACCESS -->
+    <div class="admin-tab-content" id="tab-access">
+      <div class="card">
+        <div class="card-header">
+          <div class="card-header-icon" style="background:linear-gradient(135deg,#8B5CF6,#7C3AED)">🔐</div>
+          <div class="card-header-text"><h2>Управление паролями</h2><p>Настройка доступов по ролям</p></div>
+        </div>
+        <div class="card-body">
+          <div style="display:flex;flex-direction:column;gap:16px;max-width:400px">
+            <div>
+              <label style="font-size:12px;font-weight:700;color:var(--text-light);text-transform:uppercase;display:block;margin-bottom:6px">Пароль менеджера</label>
+              <input type="password" id="pwManager" value="manager" style="width:100%;padding:10px 14px;border:1.5px solid var(--border);border-radius:8px;font-size:14px;outline:none">
+            </div>
+            <div>
+              <label style="font-size:12px;font-weight:700;color:var(--text-light);text-transform:uppercase;display:block;margin-bottom:6px">Пароль отдела бронирования</label>
+              <input type="password" id="pwBooking" value="booking" style="width:100%;padding:10px 14px;border:1.5px solid var(--border);border-radius:8px;font-size:14px;outline:none">
+            </div>
+            <div>
+              <label style="font-size:12px;font-weight:700;color:var(--text-light);text-transform:uppercase;display:block;margin-bottom:6px">Пароль администратора</label>
+              <input type="password" id="pwAdmin" value="admin" style="width:100%;padding:10px 14px;border:1.5px solid var(--border);border-radius:8px;font-size:14px;outline:none">
+            </div>
+            <button class="btn btn-primary" style="width:auto;align-self:flex-start;padding:11px 24px" onclick="savePWs()">💾 Обновить пароли</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- PAGE: CLIENT VIEW -->
+<div class="page" id="page-client">
+  <div style="max-width:720px;margin:0 auto;padding:32px 24px">
+    <div id="clientPublicView"></div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast">✓ <span id="toastMsg"></span></div>
+
+<!-- HIDDEN PDF CONTENT -->
+<div id="pdfContent" style="display:none;position:absolute;left:-9999px;top:-9999px"></div>
+
+<script>
+// ============================================================
+// DATA
+// ============================================================
+const DEFAULT_PACKAGES = [
+  { id:1, name:'Базовый пакет 8 часов', price:15000, note:'минивэн, русский гид, лонгтейл', type:'standard' },
+  { id:2, name:'Базовый пакет 5 часов', price:10000, note:'Доп. час сверх 5ч — 800 ฿', type:'standard' },
+  { id:3, name:'VIP пакет Альфард 8 часов', price:20000, note:'Минивэн Тойота Альфард', type:'vip' },
+  { id:4, name:'VIP пакет Альфард 5 часов', price:14000, note:'Минивэн Тойота Альфард', type:'vip' },
+];
+
+const DEFAULT_OPTIONS = [
+  { id:1,  name:'Стеклянный мост',                                    adultPrice:500,  childPrice:300,  cat:'Достопримечательности' },
+  { id:2,  name:'Стеклянный мост + завтрак/обед',                     adultPrice:600,  childPrice:400,  cat:'Достопримечательности' },
+  { id:3,  name:'Нац. парк Джеймса Бонда',                            adultPrice:300,  childPrice:150,  cat:'Достопримечательности' },
+  { id:4,  name:'Катание на каноэ',                                    adultPrice:150,  childPrice:150,  cat:'Активности' },
+  { id:5,  name:'Храм Суванкуха (обезьяны)',                           adultPrice:20,   childPrice:20,   cat:'Храмы' },
+  { id:6,  name:'Смотровая Самет (без моста)',                         adultPrice:100,  childPrice:100,  cat:'Достопримечательности' },
+  { id:7,  name:'Деревня каренов',                                     adultPrice:250,  childPrice:200,  cat:'Культурные' },
+  { id:8,  name:'Деревня слонов',                                      adultPrice:250,  childPrice:200,  cat:'Животные' },
+  { id:9,  name:'Мантра Спа',                                          adultPrice:990,  childPrice:790,  cat:'Спа' },
+  { id:10, name:'Обед в цыганской деревне',                            adultPrice:250,  childPrice:125,  cat:'Питание' },
+  { id:11, name:'Храм Ада и Рая',                                      adultPrice:0,    childPrice:0,    cat:'Храмы' },
+  { id:12, name:'Водопад',                                             adultPrice:100,  childPrice:50,   cat:'Природа' },
+  { id:13, name:'Белый храм',                                          adultPrice:0,    childPrice:0,    cat:'Храмы' },
+  { id:14, name:'Кафе с кувшинками',                                   adultPrice:0,    childPrice:0,    cat:'Питание' },
+  { id:15, name:'Пляж с самолетами',                                   adultPrice:40,   childPrice:40,   cat:'Пляжи' },
+  { id:16, name:'Горячие источники Натай',                             adultPrice:400,  childPrice:200,  cat:'Спа' },
+  { id:17, name:'Купание со слонами в море + прогулка',                adultPrice:500,  childPrice:500,  cat:'Животные' },
+  { id:18, name:'Купание со слонами в бассейне + душ',                 adultPrice:500,  childPrice:500,  cat:'Животные' },
+  { id:19, name:'Купание со слонами (море+бассейн+прогулка+душ)',      adultPrice:1000, childPrice:1000, cat:'Животные' },
+  { id:20, name:'Катание на квадроциклах',                             adultPrice:500,  childPrice:500,  cat:'Активности' },
+  { id:21, name:'Сплав на бамбуковых плотах',                          adultPrice:150,  childPrice:150,  cat:'Активности' },
+];
+
+const CAT_ICONS = {
+  'Достопримечательности': '🏛️',
+  'Активности': '🏄',
+  'Храмы': '⛩️',
+  'Культурные': '🎭',
+  'Животные': '🐘',
+  'Спа': '💆',
+  'Питание': '🍜',
+  'Природа': '🌿',
+  'Пляжи': '🏖️',
+};
+
+const CAT_COLORS = {
+  'Достопримечательности': '#DBEAFE:#1D4ED8',
+  'Активности': '#D1FAE5:#065F46',
+  'Храмы': '#FEF3C7:#92400E',
+  'Культурные': '#EDE9FE:#5B21B6',
+  'Животные': '#FCE7F3:#9D174D',
+  'Спа': '#FDF2F8:#831843',
+  'Питание': '#FEF9C3:#713F12',
+  'Природа': '#DCFCE7:#14532D',
+  'Пляжи': '#E0F2FE:#0C4A6E',
+};
+
+// STATE
+let state = {
+  role: 'manager',
+  passwords: { manager:'manager', booking:'booking', admin:'admin' },
+  selectedPackage: null,
+  quantities: {},   // { optId: { adult: N, child: N } }
+  clientName: '',
+  tourDate: '',
+  clientPhone: '',
+  clientNote: '',
+  markupPct: 0,
+  markupBat: 0,
+  defaultMarkupPct: 0,
+  defaultMarkupBat: 0,
+  packages: [...DEFAULT_PACKAGES],
+  options: [...DEFAULT_OPTIONS],
+  activeCat: 'all',
+};
+
+// ============================================================
+// INIT
+// ============================================================
+function init() {
+  loadFromStorage();
+  // Check URL params for client view
+  const params = new URLSearchParams(window.location.search);
+  if (params.has('view')) {
+    try {
+      const data = JSON.parse(atob(params.get('view')));
+      showClientView(data);
+      return;
+    } catch(e) {}
+  }
+  renderPackages();
+  renderCatFilters();
+  renderOptions();
+  renderAdminTables();
+  updateSummary();
+  
+  // Set today's date as default
+  const today = new Date().toISOString().split('T')[0];
+  document.getElementById('tourDate').value = today;
+}
+
+// ============================================================
+// STORAGE
+// ============================================================
+function saveToStorage() {
+  localStorage.setItem('phangnga_state', JSON.stringify({
+    passwords: state.passwords,
+    packages: state.packages,
+    options: state.options,
+    defaultMarkupPct: state.defaultMarkupPct,
+    defaultMarkupBat: state.defaultMarkupBat,
+  }));
+}
+
+function loadFromStorage() {
+  const saved = localStorage.getItem('phangnga_state');
+  if (saved) {
+    const d = JSON.parse(saved);
+    if (d.passwords) state.passwords = d.passwords;
+    if (d.packages) state.packages = d.packages;
+    if (d.options) state.options = d.options;
+    if (d.defaultMarkupPct !== undefined) state.defaultMarkupPct = d.defaultMarkupPct;
+    if (d.defaultMarkupBat !== undefined) state.defaultMarkupBat = d.defaultMarkupBat;
+  }
+}
+
+// ============================================================
+// PAGES
+// ============================================================
+function showPage(name) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById('page-'+name).classList.add('active');
+}
+
+// ============================================================
+// LOGIN
+// ============================================================
+function showAdminLogin() {
+  document.getElementById('loginModal').classList.add('open');
+}
+
+function doLogin() {
+  const role = document.getElementById('login-role').value;
+  const pass = document.getElementById('login-pass').value;
+  if (pass === state.passwords[role]) {
+    state.role = role;
+    closeModal('loginModal');
+    document.getElementById('login-pass').value = '';
+    applyRole();
+    showToast('✅ Добро пожаловать! Роль: ' + getRoleName(role), 'success');
+    if (role === 'admin') {
+      renderAdminTables();
+      showPage('admin');
+    }
+  } else {
+    showToast('❌ Неверный пароль', 'error');
+  }
+}
+
+function getRoleName(r) {
+  return { manager:'Менеджер', booking:'Отдел бронирования', admin:'Администратор' }[r];
+}
+
+function applyRole() {
+  const badge = document.getElementById('role-display');
+  const adminNav = document.getElementById('btn-admin-nav');
+  const loginBtn = document.querySelector('.btn-nav-accent');
+  const markupCard = document.getElementById('markupCard');
+  
+  if (state.role === 'manager') {
+    badge.className = 'role-badge role-manager';
+    badge.textContent = '👤 Менеджер';
+    if(adminNav) adminNav.style.display = 'none';
+    markupCard.style.display = 'none';
+    if(loginBtn){ loginBtn.textContent='🔐 Войти'; loginBtn.onclick=showAdminLogin; }
+  } else if (state.role === 'booking') {
+    badge.className = 'role-badge role-booking';
+    badge.textContent = '📋 Бронирование';
+    if(adminNav) adminNav.style.display = 'none';
+    markupCard.style.display = 'block';
+    document.getElementById('markupPct').value = state.defaultMarkupPct;
+    document.getElementById('markupBat').value = state.defaultMarkupBat;
+    if(loginBtn){ loginBtn.textContent='🚪 Выйти'; loginBtn.onclick=logout; }
+  } else if (state.role === 'admin') {
+    badge.className = 'role-badge role-admin';
+    badge.textContent = '⚙️ Администратор';
+    if(adminNav){ adminNav.style.display='flex'; adminNav.onclick=()=>showPage('admin'); }
+    markupCard.style.display = 'block';
+    if(loginBtn){ loginBtn.textContent='🚪 Выйти'; loginBtn.onclick=logout; }
+  }
+  updateSummary();
+}
+
+function logout() {
+  state.role = 'manager';
+  applyRole();
+  showPage('calculator');
+  showToast('Вы вышли из системы');
+}
+
+function closeModal(id) {
+  document.getElementById(id).classList.remove('open');
+}
+
+// ============================================================
+// RENDER PACKAGES
+// ============================================================
+function renderPackages() {
+  const grid = document.getElementById('packagesGrid');
+  grid.innerHTML = state.packages.map(pkg => `
+    <div class="pkg-card ${pkg.type==='vip'?'vip':''} ${state.selectedPackage===pkg.id?'selected':''}"
+         onclick="selectPackage(${pkg.id})">
+      <div class="pkg-badge">${pkg.type==='vip'?'⭐ VIP':'🔹 Стандарт'}</div>
+      <div class="pkg-name">${pkg.name}</div>
+      <div class="pkg-note">${pkg.note}</div>
+      <div class="pkg-price">${fmt(pkg.price)} <span>฿ / группа</span></div>
+    </div>
+  `).join('');
+}
+
+function selectPackage(id) {
+  state.selectedPackage = state.selectedPackage === id ? null : id;
+  renderPackages();
+  updateSummary();
+}
+
+// ============================================================
+// RENDER CATEGORY FILTERS
+// ============================================================
+function renderCatFilters() {
+  const cats = ['all', ...new Set(state.options.map(o => o.cat))];
+  document.getElementById('catFilters').innerHTML = cats.map(c => `
+    <button class="cat-btn ${state.activeCat===c?'active':''}" onclick="setCat('${c}')">
+      ${c==='all'?'🌐 Все':(CAT_ICONS[c]||'')+ ' ' +c}
+    </button>
+  `).join('');
+}
+
+function setCat(cat) {
+  state.activeCat = cat;
+  renderCatFilters();
+  renderOptions();
+}
+
+// ============================================================
+// RENDER OPTIONS
+// ============================================================
+function renderOptions() {
+  const filtered = state.activeCat === 'all'
+    ? state.options
+    : state.options.filter(o => o.cat === state.activeCat);
+
+  const tbody = document.getElementById('optionsBody');
+  tbody.innerHTML = filtered.map(opt => {
+    const q = state.quantities[opt.id] || { adult:0, child:0 };
+    const sum = (q.adult||0)*opt.adultPrice + (q.child||0)*opt.childPrice;
+    const hasQty = (q.adult||0)+(q.child||0) > 0;
+    const [bg, fg] = (CAT_COLORS[opt.cat]||'#F1F5F9:#64748B').split(':');
+    return `
+      <tr class="opt-row ${hasQty?'has-qty':''}" id="optrow-${opt.id}">
+        <td>
+          <div class="opt-name">${opt.name}</div>
+          <span class="opt-cat-tag" style="background:${bg};color:${fg}">${CAT_ICONS[opt.cat]||''} ${opt.cat}</span>
+        </td>
+        <td style="text-align:center">
+          <input class="qty-input" type="number" min="0" max="99" value="${q.adult||''}"
+            placeholder="0"
+            oninput="setQty(${opt.id},'adult',this.value)">
+        </td>
+        <td style="text-align:center">
+          <input class="qty-input" type="number" min="0" max="99" value="${q.child||''}"
+            placeholder="0"
+            oninput="setQty(${opt.id},'child',this.value)">
+        </td>
+        <td class="opt-price">${opt.adultPrice>0?fmt(opt.adultPrice)+' ฿':'<span class="opt-price-free">FREE</span>'}</td>
+        <td class="opt-price">${opt.childPrice>0?fmt(opt.childPrice)+' ฿':'<span class="opt-price-free">FREE</span>'}</td>
+        <td class="opt-sum ${sum===0?'zero':''}" id="optsum-${opt.id}">${sum>0?fmt(sum)+' ฿':'—'}</td>
+      </tr>
+    `;
+  }).join('');
+}
+
+function setQty(id, type, val) {
+  if (!state.quantities[id]) state.quantities[id] = { adult:0, child:0 };
+  state.quantities[id][type] = parseInt(val)||0;
+  updateSummary();
+  // Update row highlight
+  const q = state.quantities[id];
+  const opt = state.options.find(o=>o.id===id);
+  if (opt) {
+    const sum = (q.adult||0)*opt.adultPrice + (q.child||0)*opt.childPrice;
+    const row = document.getElementById('optrow-'+id);
+    const sumEl = document.getElementById('optsum-'+id);
+    if (row) {
+      row.classList.toggle('has-qty', (q.adult||0)+(q.child||0)>0);
+    }
+    if (sumEl) {
+      sumEl.textContent = sum>0 ? fmt(sum)+' ฿' : '—';
+      sumEl.className = 'opt-sum ' + (sum===0?'zero':'');
+    }
+  }
+}
+
+// ============================================================
+// SUMMARY
+// ============================================================
+function updateSummary() {
+  const pkg = state.packages.find(p=>p.id===state.selectedPackage);
+  const pkgPrice = pkg ? pkg.price : 0;
+
+  let optTotal = 0;
+  state.options.forEach(opt => {
+    const q = state.quantities[opt.id]||{adult:0,child:0};
+    optTotal += (q.adult||0)*opt.adultPrice + (q.child||0)*opt.childPrice;
+  });
+
+  const sub = pkgPrice + optTotal;
+  const markupPct = parseFloat(document.getElementById('markupPct')?.value)||0;
+  const markupBat = parseFloat(document.getElementById('markupBat')?.value)||0;
+  const markupCalc = Math.round(sub * markupPct/100) + markupBat;
+  const total = sub + markupCalc;
+
+  document.getElementById('sumPackage').textContent = fmt(pkgPrice)+' ฿';
+  document.getElementById('sumOptions').textContent = fmt(optTotal)+' ฿';
+  document.getElementById('sumTotal').textContent = fmt(total)+' ฿';
+
+  const markupRow = document.getElementById('sumMarkupRow');
+  if ((state.role==='booking'||state.role==='admin') && (markupPct>0||markupBat>0)) {
+    markupRow.style.display = 'flex';
+    document.getElementById('sumMarkup').textContent = '+'+fmt(markupCalc)+' ฿';
+  } else {
+    markupRow.style.display = 'none';
+  }
+
+  // Selected opts list
+  const list = document.getElementById('selectedOptsList');
+  const selected = state.options.filter(opt => {
+    const q = state.quantities[opt.id]||{};
+    return (q.adult||0)+(q.child||0) > 0;
+  });
+
+  let html = '';
+  if (pkg) {
+    html += `<div class="sel-opt">
+      <div><div class="sel-opt-name">🚐 ${pkg.name}</div><div class="sel-opt-detail">${pkg.note}</div></div>
+      <div class="sel-opt-price">${fmt(pkgPrice)} ฿</div>
+    </div>`;
+  }
+  selected.forEach(opt => {
+    const q = state.quantities[opt.id];
+    const sum = (q.adult||0)*opt.adultPrice + (q.child||0)*opt.childPrice;
+    const detail = [q.adult>0?`взр: ${q.adult}`:'', q.child>0?`дет: ${q.child}`:''].filter(Boolean).join(', ');
+    html += `<div class="sel-opt">
+      <div>
+        <div class="sel-opt-name">${CAT_ICONS[opt.cat]||'•'} ${opt.name}</div>
+        <div class="sel-opt-detail">${detail}</div>
+      </div>
+      <div class="sel-opt-price">${fmt(sum)} ฿</div>
+    </div>`;
+  });
+
+  if (!pkg && selected.length===0) {
+    list.innerHTML = `<div class="empty-state"><div class="icon">🎯</div><p>Выберите пакет и добавьте опции</p></div>`;
+  } else {
+    list.innerHTML = html;
+  }
+}
+
+// ============================================================
+// COLLECT DATA
+// ============================================================
+function collectData() {
+  const pkg = state.packages.find(p=>p.id===state.selectedPackage);
+  const opts = state.options.filter(opt=>{
+    const q=state.quantities[opt.id]||{};
+    return (q.adult||0)+(q.child||0)>0;
+  }).map(opt=>{
+    const q=state.quantities[opt.id];
+    const sum=(q.adult||0)*opt.adultPrice+(q.child||0)*opt.childPrice;
+    return {...opt, qty:q, sum};
+  });
+
+  const pkgPrice = pkg?pkg.price:0;
+  const optTotal = opts.reduce((a,o)=>a+o.sum,0);
+  const sub = pkgPrice+optTotal;
+  const markupPct = parseFloat(document.getElementById('markupPct')?.value)||0;
+  const markupBat = parseFloat(document.getElementById('markupBat')?.value)||0;
+  const markupCalc = Math.round(sub*markupPct/100)+markupBat;
+  const total = sub+markupCalc;
+
+  return {
+    clientName: document.getElementById('clientName').value,
+    tourDate: document.getElementById('tourDate').value,
+    clientPhone: document.getElementById('clientPhone').value,
+    clientNote: document.getElementById('clientNote').value,
+    package: pkg,
+    options: opts,
+    pkgPrice, optTotal, markupPct, markupBat, markupCalc, total,
+    generated: new Date().toLocaleDateString('ru-RU',{day:'2-digit',month:'long',year:'numeric'}),
+  };
+}
+
+// ============================================================
+// PDF
+// ============================================================
+function downloadPDF() {
+  const d = collectData();
+  const html = buildPDFHTML(d, false);
+  document.getElementById('pdfContent').innerHTML = html;
+  document.getElementById('pdfContent').style.display = 'block';
+  const el = document.getElementById('pdfContent');
+  const opt = {
+    margin: [10,10,10,10],
+    filename: `Тур_ПхангНга_${d.clientName||'клиент'}_${d.tourDate||'дата'}.pdf`,
+    image: { type:'jpeg', quality:0.95 },
+    html2canvas: { scale:2, useCORS:true },
+    jsPDF: { unit:'mm', format:'a4', orientation:'portrait' }
+  };
+  html2pdf().set(opt).from(el).save().then(()=>{
+    document.getElementById('pdfContent').style.display = 'none';
+    showToast('✅ PDF успешно скачан!', 'success');
+  });
+}
+
+function downloadClientPDF() {
+  const d = collectData();
+  const html = buildPDFHTML(d, true);
+  document.getElementById('pdfContent').innerHTML = html;
+  document.getElementById('pdfContent').style.display = 'block';
+  const opt = {
+    margin: [10,10,10,10],
+    filename: `Предложение_Тур_ПхангНга_${d.clientName||'клиент'}.pdf`,
+    image: { type:'jpeg', quality:0.95 },
+    html2canvas: { scale:2, useCORS:true },
+    jsPDF: { unit:'mm', format:'a4', orientation:'portrait' }
+  };
+  html2pdf().set(opt).from(document.getElementById('pdfContent')).save().then(()=>{
+    document.getElementById('pdfContent').style.display = 'none';
+  });
+}
+
+function buildPDFHTML(d, clientView) {
+  const optRows = (d.options||[]).map(o=>`
+    <tr>
+      <td>${o.name}</td>
+      <td style="text-align:center">${o.qty.adult||0}</td>
+      <td style="text-align:center">${o.qty.child||0}</td>
+      <td style="text-align:right">${fmt(o.adultPrice)} ฿</td>
+      <td style="text-align:right">${fmt(o.childPrice)} ฿</td>
+      <td style="text-align:right;font-weight:700">${fmt(o.sum)} ฿</td>
+    </tr>
+  `).join('');
+
+  const markupRow = (!clientView && (d.markupPct>0||d.markupBat>0)) ? `
+    <tr style="background:#FEF3C7">
+      <td colspan="5" style="font-weight:600;color:#92400E">Наценка (${d.markupPct}% + ${fmt(d.markupBat)}฿)</td>
+      <td style="text-align:right;font-weight:700;color:#92400E">+${fmt(d.markupCalc)} ฿</td>
+    </tr>
+  ` : '';
+
+  return `
+    <div style="font-family:'Inter',Arial,sans-serif;padding:32px;max-width:700px;margin:0 auto;color:#1E293B">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:24px;padding-bottom:20px;border-bottom:2px solid #0F4C75">
+        <div>
+          <div style="font-size:24px;font-weight:800;color:#0F4C75">🌴 Пханг Нга Туры</div>
+          <div style="font-size:13px;color:#64748B;margin-top:4px">Тайланд · Индивидуальные туры</div>
+        </div>
+        <div style="text-align:right">
+          <div style="font-size:20px;font-weight:700">Расчёт тура</div>
+          <div style="font-size:12px;color:#64748B;margin-top:2px">Сформировано: ${d.generated}</div>
+        </div>
+      </div>
+
+      <div style="background:#F0F5FA;border-radius:10px;padding:16px;margin-bottom:24px;display:grid;grid-template-columns:1fr 1fr;gap:10px">
+        ${d.clientName?`<div><span style="font-weight:600;color:#64748B;font-size:11px;text-transform:uppercase">Клиент</span><div style="font-weight:700;font-size:14px;margin-top:3px">${d.clientName}</div></div>`:''}
+        ${d.tourDate?`<div><span style="font-weight:600;color:#64748B;font-size:11px;text-transform:uppercase">Дата тура</span><div style="font-weight:700;font-size:14px;margin-top:3px">${formatDate(d.tourDate)}</div></div>`:''}
+        ${d.clientPhone?`<div><span style="font-weight:600;color:#64748B;font-size:11px;text-transform:uppercase">Телефон</span><div style="font-weight:700;font-size:14px;margin-top:3px">${d.clientPhone}</div></div>`:''}
+        ${d.clientNote?`<div style="grid-column:1/-1"><span style="font-weight:600;color:#64748B;font-size:11px;text-transform:uppercase">Примечание</span><div style="font-size:13px;margin-top:3px">${d.clientNote}</div></div>`:''}
+      </div>
+
+      ${d.package?`
+        <div style="background:linear-gradient(135deg,#0F4C75,#1B6CA8);color:white;border-radius:10px;padding:16px;margin-bottom:20px;display:flex;justify-content:space-between;align-items:center">
+          <div>
+            <div style="font-size:11px;opacity:0.8;text-transform:uppercase;margin-bottom:4px">Базовый пакет</div>
+            <div style="font-size:16px;font-weight:700">${d.package.name}</div>
+            <div style="font-size:12px;opacity:0.8;margin-top:3px">${d.package.note}</div>
+          </div>
+          <div style="font-size:22px;font-weight:800">${fmt(d.pkgPrice)} ฿</div>
+        </div>
+      `:''}
+
+      ${d.options&&d.options.length>0?`
+        <div style="margin-bottom:20px">
+          <div style="font-size:14px;font-weight:700;margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid #E2E8F0">🎯 Дополнительные опции</div>
+          <table style="width:100%;border-collapse:collapse;font-size:12px">
+            <thead>
+              <tr style="background:#F8FAFF">
+                <th style="padding:9px 10px;text-align:left;font-size:10px;text-transform:uppercase;color:#64748B;border-bottom:2px solid #E2E8F0">Опция</th>
+                <th style="padding:9px 10px;text-align:center;font-size:10px;text-transform:uppercase;color:#64748B;border-bottom:2px solid #E2E8F0">Взр.</th>
+                <th style="padding:9px 10px;text-align:center;font-size:10px;text-transform:uppercase;color:#64748B;border-bottom:2px solid #E2E8F0">Дет.</th>
+                <th style="padding:9px 10px;text-align:right;font-size:10px;text-transform:uppercase;color:#64748B;border-bottom:2px solid #E2E8F0">Цена взр.</th>
+                <th style="padding:9px 10px;text-align:right;font-size:10px;text-transform:uppercase;color:#64748B;border-bottom:2px solid #E2E8F0">Цена дет.</th>
+                <th style="padding:9px 10px;text-align:right;font-size:10px;text-transform:uppercase;color:#64748B;border-bottom:2px solid #E2E8F0">Сумма</th>
+              </tr>
+            </thead>
+            <tbody>${optRows}</tbody>
+          </table>
+        </div>
+      `:''}
+
+      <table style="width:100%;border-collapse:collapse;margin-bottom:16px;font-size:13px">
+        <tr style="background:#F8FAFF">
+          <td colspan="5" style="padding:10px 12px;font-weight:600;color:#64748B">Базовый пакет</td>
+          <td style="padding:10px 12px;text-align:right;font-weight:700">${fmt(d.pkgPrice)} ฿</td>
+        </tr>
+        <tr>
+          <td colspan="5" style="padding:10px 12px;font-weight:600;color:#64748B">Дополнительные опции</td>
+          <td style="padding:10px 12px;text-align:right;font-weight:700">${fmt(d.optTotal)} ฿</td>
+        </tr>
+        ${markupRow}
+      </table>
+
+      <div style="background:linear-gradient(135deg,#0F4C75,#1B6CA8);color:white;border-radius:12px;padding:20px 24px;display:flex;justify-content:space-between;align-items:center">
+        <div>
+          <div style="font-size:14px;font-weight:600;opacity:0.9">ИТОГО К ОПЛАТЕ</div>
+          <div style="font-size:12px;opacity:0.75;margin-top:2px">тайских бат (THB)</div>
+        </div>
+        <div style="font-size:32px;font-weight:800">${fmt(d.total)} ฿</div>
+      </div>
+
+      <div style="margin-top:20px;text-align:center;font-size:11px;color:#94A3B8">
+        Расчёт сформирован автоматически · Пханг Нга Туры · Тайланд
+      </div>
+    </div>
+  `;
+}
+
+// ============================================================
+// TEXT FORMAT
+// ============================================================
+function showTextFormat() {
+  const d = collectData();
+  const lines = [
+    '🌴 *РАСЧЁТ ТУРА — ПХАНГ НГА*',
+    '━━━━━━━━━━━━━━━━━━━━━━',
+    d.clientName ? `👤 Клиент: ${d.clientName}` : '',
+    d.tourDate ? `📅 Дата: ${formatDate(d.tourDate)}` : '',
+    d.clientPhone ? `📱 Телефон: ${d.clientPhone}` : '',
+    '',
+  ].filter(l => l !== null);
+
+  if (d.package) {
+    lines.push('🚐 *БАЗОВЫЙ ПАКЕТ*');
+    lines.push(`• ${d.package.name} — ${fmt(d.pkgPrice)} ฿`);
+    lines.push(`  (${d.package.note})`);
+    lines.push('');
+  }
+
+  if (d.options && d.options.length > 0) {
+    lines.push('🎯 *ДОПОЛНИТЕЛЬНЫЕ ОПЦИИ*');
+    d.options.forEach(o => {
+      const detail = [o.qty.adult>0?`${o.qty.adult} взр.`:'', o.qty.child>0?`${o.qty.child} дет.`:''].filter(Boolean).join(', ');
+      lines.push(`• ${o.name} (${detail}) — ${fmt(o.sum)} ฿`);
+    });
+    lines.push('');
+  }
+
+  lines.push('━━━━━━━━━━━━━━━━━━━━━━');
+  lines.push(`💳 *ИТОГО К ОПЛАТЕ: ${fmt(d.total)} ฿*`);
+  lines.push('');
+  lines.push('_Цены указаны в тайских батах (THB)_');
+  lines.push('_Пханг Нга Туры · Тайланд_');
+
+  if (d.clientNote) {
+    lines.push('');
+    lines.push(`📝 Примечание: ${d.clientNote}`);
+  }
+
+  document.getElementById('textOutput').textContent = lines.filter(l=>l!=='').join('\n');
+  document.getElementById('textModal').classList.add('open');
+}
+
+function copyText() {
+  const text = document.getElementById('textOutput').textContent;
+  navigator.clipboard.writeText(text).then(() => {
+    showToast('✅ Текст скопирован в буфер обмена!', 'success');
+  });
+}
+
+// ============================================================
+// SHARE LINK
+// ============================================================
+function generateLink() {
+  const d = collectData();
+  const payload = btoa(encodeURIComponent(JSON.stringify(d)));
+  const url = window.location.origin + window.location.pathname + '?view=' + payload;
+  document.getElementById('shareUrlInput').value = url;
+  document.getElementById('linkModal').classList.add('open');
+}
+
+function copyLink() {
+  const url = document.getElementById('shareUrlInput').value;
+  navigator.clipboard.writeText(url).then(() => {
+    showToast('✅ Ссылка скопирована!', 'success');
+  });
+}
+
+// ============================================================
+// CLIENT VIEW
+// ============================================================
+function showClientView(data) {
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.getElementById('page-client').classList.add('active');
+
+  const html = buildClientViewHTML(data);
+  document.getElementById('clientPublicView').innerHTML = html;
+
+  // Update header for client view
+  document.querySelector('.logo-sub').textContent = 'Ваш расчёт тура';
+  document.querySelector('.header-nav').innerHTML = `
+    <span style="font-size:12px;opacity:0.8">📄 Просмотр расчёта</span>
+  `;
+}
+
+function buildClientViewHTML(d) {
+  const optRows = (d.options||[]).map(o=>`
+    <div class="sel-opt" style="margin-bottom:8px">
+      <div>
+        <div class="sel-opt-name">${o.name}</div>
+        <div class="sel-opt-detail">${[o.qty&&o.qty.adult>0?`${o.qty.adult} взр.`:'',o.qty&&o.qty.child>0?`${o.qty.child} дет.`:''].filter(Boolean).join(', ')}</div>
+      </div>
+      <div class="sel-opt-price">${fmt(o.sum)} ฿</div>
+    </div>
+  `).join('');
+
+  return `
+    <div style="text-align:center;margin-bottom:32px">
+      <div style="font-size:32px;margin-bottom:8px">🌴</div>
+      <h1 style="font-size:24px;font-weight:800;color:var(--primary)">Ваш тур в Пханг Нга</h1>
+      <p style="color:var(--text-light);margin-top:6px">Индивидуальный расчёт для вас</p>
+    </div>
+
+    <div class="card" style="margin-bottom:16px">
+      <div class="card-body">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+          ${d.clientName?`<div><div style="font-size:11px;font-weight:700;color:var(--text-light);text-transform:uppercase;margin-bottom:4px">Клиент</div><div style="font-weight:700">${d.clientName}</div></div>`:''}
+          ${d.tourDate?`<div><div style="font-size:11px;font-weight:700;color:var(--text-light);text-transform:uppercase;margin-bottom:4px">Дата тура</div><div style="font-weight:700">${formatDate(d.tourDate)}</div></div>`:''}
+        </div>
+      </div>
+    </div>
+
+    ${d.package?`
+    <div class="card" style="margin-bottom:16px">
+      <div class="card-body">
+        <div style="font-size:12px;font-weight:700;color:var(--text-light);text-transform:uppercase;margin-bottom:10px">🚐 Базовый пакет</div>
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <div>
+            <div style="font-weight:700;font-size:15px">${d.package.name}</div>
+            <div style="font-size:12px;color:var(--text-light);margin-top:3px">${d.package.note}</div>
+          </div>
+          <div style="font-size:20px;font-weight:800;color:var(--primary)">${fmt(d.pkgPrice)} ฿</div>
+        </div>
+      </div>
+    </div>
+    `:''}
+
+    ${d.options&&d.options.length>0?`
+    <div class="card" style="margin-bottom:16px">
+      <div class="card-body">
+        <div style="font-size:12px;font-weight:700;color:var(--text-light);text-transform:uppercase;margin-bottom:12px">🎯 Дополнительные опции</div>
+        ${optRows}
+      </div>
+    </div>
+    `:''}
+
+    <div style="background:linear-gradient(135deg,var(--primary),var(--primary-light));color:white;border-radius:var(--radius);padding:24px;text-align:center;margin-bottom:20px">
+      <div style="font-size:13px;opacity:0.85;margin-bottom:8px">ИТОГО К ОПЛАТЕ</div>
+      <div style="font-size:40px;font-weight:800">${fmt(d.total)} ฿</div>
+      <div style="font-size:12px;opacity:0.75;margin-top:6px">тайских бат (THB)</div>
+    </div>
+
+    ${d.clientNote?`
+    <div class="card" style="margin-bottom:16px">
+      <div class="card-body">
+        <div style="font-size:12px;font-weight:700;color:var(--text-light);text-transform:uppercase;margin-bottom:6px">📝 Примечание</div>
+        <div style="font-size:13px">${d.clientNote}</div>
+      </div>
+    </div>
+    `:''}
+  `;
+}
+
+// ============================================================
+// ADMIN TABLES
+// ============================================================
+function renderAdminTables() {
+  // Packages
+  document.getElementById('adminPackagesTable').innerHTML = state.packages.map((p,i)=>`
+    <tr>
+      <td style="width:30px;text-align:center;font-weight:600;color:var(--text-light)">${p.id}</td>
+      <td class="name-col"><input type="text" value="${p.name}" oninput="state.packages[${i}].name=this.value" style="width:100%"></td>
+      <td style="width:130px"><input type="number" value="${p.price}" oninput="state.packages[${i}].price=parseInt(this.value)||0" style="width:100%"></td>
+      <td><input type="text" value="${p.note}" oninput="state.packages[${i}].note=this.value" style="width:100%"></td>
+    </tr>
+  `).join('');
+
+  // Options
+  document.getElementById('adminOptionsTable').innerHTML = state.options.map((o,i)=>`
+    <tr>
+      <td style="width:30px;text-align:center;font-weight:600;color:var(--text-light)">${o.id}</td>
+      <td class="name-col"><input type="text" value="${o.name}" oninput="state.options[${i}].name=this.value" style="width:100%"></td>
+      <td style="width:100px"><input type="number" value="${o.adultPrice}" oninput="state.options[${i}].adultPrice=parseInt(this.value)||0"></td>
+      <td style="width:100px"><input type="number" value="${o.childPrice}" oninput="state.options[${i}].childPrice=parseInt(this.value)||0"></td>
+      <td style="width:150px"><input type="text" value="${o.cat}" oninput="state.options[${i}].cat=this.value"></td>
+    </tr>
+  `).join('');
+
+  // Markup defaults
+  if (document.getElementById('defaultMarkupPct'))
+    document.getElementById('defaultMarkupPct').value = state.defaultMarkupPct;
+  if (document.getElementById('defaultMarkupBat'))
+    document.getElementById('defaultMarkupBat').value = state.defaultMarkupBat;
+}
+
+function saveAdminSettings() {
+  state.defaultMarkupPct = parseFloat(document.getElementById('defaultMarkupPct')?.value)||0;
+  state.defaultMarkupBat = parseFloat(document.getElementById('defaultMarkupBat')?.value)||0;
+  saveToStorage();
+  renderPackages();
+  renderCatFilters();
+  renderOptions();
+  updateSummary();
+  showToast('✅ Настройки сохранены!', 'success');
+}
+
+function savePWs() {
+  state.passwords.manager = document.getElementById('pwManager').value || 'manager';
+  state.passwords.booking = document.getElementById('pwBooking').value || 'booking';
+  state.passwords.admin = document.getElementById('pwAdmin').value || 'admin';
+  saveToStorage();
+  showToast('✅ Пароли обновлены!', 'success');
+}
+
+function switchAdminTab(name) {
+  document.querySelectorAll('.admin-tab').forEach((t,i) => {
+    const tabs = ['prices','options','markup','access'];
+    t.classList.toggle('active', tabs[i]===name);
+  });
+  document.querySelectorAll('.admin-tab-content').forEach(c => c.classList.remove('active'));
+  document.getElementById('tab-'+name).classList.add('active');
+}
+
+// ============================================================
+// UTILS
+// ============================================================
+function fmt(n) {
+  return (n||0).toLocaleString('ru-RU');
+}
+
+function formatDate(d) {
+  if (!d) return '';
+  const [y,m,day] = d.split('-');
+  const months = ['января','февраля','марта','апреля','мая','июня','июля','августа','сентября','октября','ноября','декабря'];
+  return `${parseInt(day)} ${months[parseInt(m)-1]} ${y}`;
+}
+
+function resetAll() {
+  state.selectedPackage = null;
+  state.quantities = {};
+  document.getElementById('clientName').value = '';
+  document.getElementById('tourDate').value = new Date().toISOString().split('T')[0];
+  document.getElementById('clientPhone').value = '';
+  document.getElementById('clientNote').value = '';
+  if (document.getElementById('markupPct')) document.getElementById('markupPct').value = 0;
+  if (document.getElementById('markupBat')) document.getElementById('markupBat').value = 0;
+  renderPackages();
+  renderOptions();
+  updateSummary();
+  showToast('🔄 Калькулятор сброшен');
+}
+
+function showToast(msg, type='') {
+  const t = document.getElementById('toast');
+  document.getElementById('toastMsg').textContent = msg;
+  t.className = 'toast show ' + type;
+  setTimeout(() => t.className='toast', 3000);
+}
+
+// Close modals on overlay click
+document.querySelectorAll('.modal-overlay').forEach(overlay => {
+  overlay.addEventListener('click', function(e) {
+    if (e.target === this) this.classList.remove('open');
+  });
+});
+
+// ============================================================
+// BOOT
+// ============================================================
+init();
+</script>
+</body>
+</html>
