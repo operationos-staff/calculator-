@@ -2693,4 +2693,122 @@
         opts.forEach(o => { const det = [o.aQ > 0 ? o.aQ + ' взр.' : '', o.cQ > 0 ? o.cQ + ' дет.' : ''].filter(Boolean).join(', '); h += `<div class="sopt"><div><div class="sopt-n">${esc(o.name)}</div><div class="sopt-d">${det}</div></div><div class="sopt-p">${fmt(o.sum)} ฿</div></div>`; });
         h += '</div></div>';
       }
-      h += `<div class="ct-box"><div class="ctl
+      h += `<div class="ct-box"><div class="ctl">ИТОГО К ОПЛАТЕ</div><div class="cta">${fmt(d.total)} ฿</div><div class="ctc">тайских бат (THB)</div></div>`;
+      if (d.note) h += `<div class="card"><div class="card-b"><div style="font-size:9px;font-weight:700;color:var(--text-light);text-transform:uppercase;margin-bottom:3px">📝 Примечание</div><div style="font-size:12px">${esc(d.note)}</div></div></div>`;
+      h += `<div style="text-align:center;font-size:10px;color:var(--text-light);margin-top:16px;padding-bottom:24px">${d.gen ? 'Расчёт от ' + d.gen + ' · ' : ''}Пханг Нга Туры</div>`;
+      document.getElementById('clientPage').innerHTML = h;
+    }
+
+    // ============================================================
+    // ADMIN (inside booking page)
+    // ============================================================
+    function renderAdmin() {
+      // Packages table
+      document.getElementById('aPkgTbl').innerHTML = S.packages.map((p, i) => `<tr>
+    <td style="width:50px;text-align:center;color:var(--text-light);font-weight:600;font-size:9px">${p.id}</td>
+    <td style="width:45px"><input value="${eA(p.type)}" oninput="S.packages[${i}].type=this.value" style="text-align:center"></td>
+    <td style="width:35px"><input type="number" value="${p.hours}" oninput="S.packages[${i}].hours=parseInt(this.value)||0"></td>
+    <td><input type="text" value="${eA(p.name)}" oninput="S.packages[${i}].name=this.value"></td>
+    <td style="width:85px"><input type="number" value="${p.mgrPrice}" oninput="S.packages[${i}].mgrPrice=parseInt(this.value)||0"></td>
+    <td style="width:85px"><input type="number" value="${p.nettoPrice}" oninput="S.packages[${i}].nettoPrice=parseInt(this.value)||0"></td>
+    <td><input type="text" value="${eA(p.note)}" oninput="S.packages[${i}].note=this.value"></td>
+    <td><input type="text" value="${eA(p.nettoDetail || '')}" oninput="S.packages[${i}].nettoDetail=this.value"></td>
+  </tr>`).join('');
+
+      // Options table
+      document.getElementById('aOptTbl').innerHTML = S.options.map((o, i) => `<tr>
+    <td style="width:28px;text-align:center;color:var(--text-light);font-weight:600;font-size:9px">${o.id}</td>
+    <td><input type="text" value="${eA(o.name)}" oninput="S.options[${i}].name=this.value"></td>
+    <td style="width:65px"><input type="number" value="${o.mgrA}" oninput="S.options[${i}].mgrA=parseInt(this.value)||0"></td>
+    <td style="width:65px"><input type="number" value="${o.mgrC}" oninput="S.options[${i}].mgrC=parseInt(this.value)||0"></td>
+    <td style="width:65px"><input type="number" value="${o.netA}" oninput="S.options[${i}].netA=parseInt(this.value)||0"></td>
+    <td style="width:65px"><input type="number" value="${o.netC}" oninput="S.options[${i}].netC=parseInt(this.value)||0"></td>
+    <td style="width:110px"><input type="text" value="${eA(o.cat)}" oninput="S.options[${i}].cat=this.value"></td>
+    <td style="width:45px;text-align:center"><input type="checkbox" ${o.only8h ? 'checked' : ''} onchange="S.options[${i}].only8h=this.checked" style="width:auto"></td>
+  </tr>`).join('');
+
+      // Delete list
+      document.getElementById('deleteOptsList').innerHTML = S.options.map(o => `
+    <div style="display:flex;align-items:center;gap:10px;padding:6px 0;border-bottom:1px solid var(--border)">
+      <button class="btn-del" onclick="deleteOpt(${o.id})">✕</button>
+      <div style="flex:1;font-size:12px;font-weight:500">${esc(o.name)}</div>
+      <div style="font-size:10px;color:var(--text-light)">${o.cat} ${o.only8h ? '· только 8ч' : ''}</div>
+      <div style="font-size:11px;font-weight:600;color:var(--primary)">${fmt(o.mgrA)}/${fmt(o.mgrC)} ฿</div>
+    </div>
+  `).join('');
+    }
+
+    function saveAdmin() { saveSt(); renderAll(); toast('Сохранено!', 'ok'); }
+
+    function bkTab(n) {
+      const tabs = ['calc', 'pkgs', 'opts', 'addrem'];
+      document.querySelectorAll('.bk-tab').forEach((t, i) => t.classList.toggle('on', tabs[i] === n));
+      document.querySelectorAll('.bk-tab-content').forEach(c => c.classList.remove('on'));
+      document.getElementById('bkt-' + n)?.classList.add('on');
+      if (n === 'addrem') renderAdmin();
+    }
+
+    // ============================================================
+    // UTILS
+    // ============================================================
+    function fmt(n) { return (n || 0).toLocaleString('ru-RU'); }
+    function fmtDate(d) {
+      if (!d) return '';
+      const p = d.split('-');
+      if (p.length !== 3) return d;
+      const [y, m, day] = p;
+      const ms = ['января', 'февраля', 'марта', 'апреля', 'мая', 'июня', 'июля', 'августа', 'сентября', 'октября', 'ноября', 'декабря'];
+      const mi = parseInt(m) - 1;
+      return mi >= 0 && mi < 12 ? parseInt(day) + ' ' + ms[mi] + ' ' + y : d;
+    }
+    function esc(s) { return String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
+    function eA(s) { return String(s || '').replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
+    function clipCopy(t, m) {
+      if (navigator.clipboard) {
+        navigator.clipboard.writeText(t).then(() => toast(m, 'ok')).catch(() => fbCopy(t, m));
+      } else {
+        fbCopy(t, m);
+      }
+    }
+    function fbCopy(t, m) {
+      const a = document.createElement('textarea');
+      a.value = t;
+      document.body.appendChild(a);
+      a.select();
+      document.execCommand('copy');
+      document.body.removeChild(a);
+      toast(m, 'ok');
+    }
+    function showPage(n) {
+      document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+      document.getElementById('page-' + n)?.classList.add('active');
+    }
+    function closeModal(id) { document.getElementById(id)?.classList.remove('open'); }
+    function toast(m, t = '') {
+      const e = document.getElementById('toast');
+      document.getElementById('toastMsg').textContent = m;
+      e.className = 'toast show ' + (t || '');
+      setTimeout(() => e.className = 'toast', 3000);
+    }
+    function resetAll() {
+      S.selBase = null; S.vip = false; S.qty = {}; S.optMk = {};
+      document.getElementById('cName').value = '';
+      document.getElementById('cDate').value = new Date().toISOString().split('T')[0];
+      document.getElementById('cPhone').value = '';
+      document.getElementById('cNote').value = '';
+      if (document.getElementById('pkgMkB')) document.getElementById('pkgMkB').value = 0;
+      if (document.getElementById('pkgMkP')) document.getElementById('pkgMkP').value = 0;
+      renderAll();
+      toast('Сброшено');
+    }
+
+    // Закрытие модальных окон по клику на фон
+    document.querySelectorAll('.mo').forEach(o => {
+      o.addEventListener('click', function (e) {
+        if (e.target === this) this.classList.remove('open');
+      });
+    });
+
+  </script>
+</body>
+</html>
