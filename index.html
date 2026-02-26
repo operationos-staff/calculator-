@@ -2670,34 +2670,58 @@
 
     function copyLink() { clipCopy(document.getElementById('shareUrl').value, 'Ссылка скопирована!'); }
 
-    // ============================================================
-    // CLIENT PAGE
-    // ============================================================
-    function renderClientPage(d) {
-      document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-      document.getElementById('page-client').classList.add('active');
-      const nav = document.getElementById('headerNav');
-      if (nav) nav.innerHTML = '<span style="font-size:11px;opacity:.8">📄 Расчёт тура</span>';
-      const pkgs = (d.items || []).filter(i => i.type !== 'opt'), opts = (d.items || []).filter(i => i.type === 'opt');
-      let h = `<div class="cp-hero"><div style="font-size:36px">🌴</div><h1>Ваш тур в Пханг Нга</h1><p>Персональный расчёт${d.name ? ' для ' + esc(d.name) : ''}</p></div>`;
-      if (d.name || d.date) {
-        h += '<div class="card"><div class="card-b" style="display:grid;grid-template-columns:1fr 1fr;gap:8px">';
-        if (d.name) h += `<div><div style="font-size:9px;font-weight:700;color:var(--text-light);text-transform:uppercase;margin-bottom:2px">Клиент</div><div style="font-weight:700">${esc(d.name)}</div></div>`;
-        if (d.date) h += `<div><div style="font-size:9px;font-weight:700;color:var(--text-light);text-transform:uppercase;margin-bottom:2px">Дата</div><div style="font-weight:700">${fmtDate(d.date)}</div></div>`;
-        if (d.phone) h += `<div><div style="font-size:9px;font-weight:700;color:var(--text-light);text-transform:uppercase;margin-bottom:2px">Телефон</div><div style="font-weight:700">${esc(d.phone)}</div></div>`;
-        h += '</div></div>';
-      }
-      pkgs.forEach(p => { h += `<div class="card"><div class="card-b" style="display:flex;justify-content:space-between;align-items:center"><div><div style="font-size:9px;font-weight:700;color:var(--text-light);text-transform:uppercase;margin-bottom:3px">${p.type === 'vip' ? '⭐ VIP' : '🚐 Пакет'}</div><div style="font-weight:700;font-size:14px">${esc(p.name)}</div><div style="font-size:10px;color:var(--text-light);margin-top:1px">${esc(p.note || '')}</div></div><div style="font-size:18px;font-weight:800;color:var(--primary)">${fmt(p.price)} ฿</div></div></div>`; });
-      if (opts.length) {
-        h += '<div class="card"><div class="card-b"><div style="font-size:9px;font-weight:700;color:var(--text-light);text-transform:uppercase;margin-bottom:8px">🎯 Дополнительные опции</div>';
-        opts.forEach(o => { const det = [o.aQ > 0 ? o.aQ + ' взр.' : '', o.cQ > 0 ? o.cQ + ' дет.' : ''].filter(Boolean).join(', '); h += `<div class="sopt"><div><div class="sopt-n">${esc(o.name)}</div><div class="sopt-d">${det}</div></div><div class="sopt-p">${fmt(o.sum)} ฿</div></div>`; });
-        h += '</div></div>';
-      }
-      h += `<div class="ct-box"><div class="ctl">ИТОГО К ОПЛАТЕ</div><div class="cta">${fmt(d.total)} ฿</div><div class="ctc">тайских бат (THB)</div></div>`;
-      if (d.note) h += `<div class="card"><div class="card-b"><div style="font-size:9px;font-weight:700;color:var(--text-light);text-transform:uppercase;margin-bottom:3px">📝 Примечание</div><div style="font-size:12px">${esc(d.note)}</div></div></div>`;
-      h += `<div style="text-align:center;font-size:10px;color:var(--text-light);margin-top:16px;padding-bottom:24px">${d.gen ? 'Расчёт от ' + d.gen + ' · ' : ''}Пханг Нга Туры</div>`;
-      document.getElementById('clientPage').innerHTML = h;
-    }
+   // ============================================================
+// CLIENT PAGE
+// ============================================================
+function renderClientPage(d) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById('page-client').classList.add('active');
+  const nav = document.getElementById('headerNav');
+  if (nav) nav.innerHTML = '<span style="font-size:11px;opacity:.8">📄 Расчёт тура</span>';
+
+  const pkgs = (d.items || []).filter(i => i.type !== 'opt');
+  const opts = (d.items || []).filter(i => i.type === 'opt');
+
+  let h = `<div class="cp-hero"><div style="font-size:36px">🌴</div><h1>Ваш тур в Пханг Нга</h1><p>Персональный расчёт${d.name ? ' для ' + esc(d.name) : ''}</p></div>`;
+
+  if (d.name || d.date || d.phone) {
+    h += '<div class="card"><div class="card-b" style="display:grid;grid-template-columns:1fr 1fr;gap:8px">';
+    if (d.name) h += `<div><div style="font-size:9px;font-weight:700;color:var(--text-light);text-transform:uppercase;margin-bottom:2px">Клиент</div><div style="font-weight:700">${esc(d.name)}</div></div>`;
+    if (d.date) h += `<div><div style="font-size:9px;font-weight:700;color:var(--text-light);text-transform:uppercase;margin-bottom:2px">Дата</div><div style="font-weight:700">${fmtDate(d.date)}</div></div>`;
+    if (d.phone) h += `<div><div style="font-size:9px;font-weight:700;color:var(--text-light);text-transform:uppercase;margin-bottom:2px">Телефон</div><div style="font-weight:700">${esc(d.phone)}</div></div>`;
+    h += '</div></div>';
+  }
+
+  pkgs.forEach(p => {
+    h += `<div class="card"><div class="card-b" style="display:flex;justify-content:space-between;align-items:center">`;
+    h += `<div><div style="font-size:9px;font-weight:700;color:var(--text-light);text-transform:uppercase;margin-bottom:3px">${p.type === 'vip' ? '⭐ VIP' : '🚐 Пакет'}</div>`;
+    h += `<div style="font-weight:700;font-size:14px">${esc(p.name)}</div>`;
+    h += `<div style="font-size:10px;color:var(--text-light);margin-top:1px">${esc(p.note || '')}</div></div>`;
+    h += `<div style="font-size:18px;font-weight:800;color:var(--primary)">${fmt(p.price)} ฿</div>`;
+    h += `</div></div>`;
+  });
+
+  if (opts.length) {
+    h += '<div class="card"><div class="card-b">';
+    h += '<div style="font-size:9px;font-weight:700;color:var(--text-light);text-transform:uppercase;margin-bottom:8px">🎯 Дополнительные опции</div>';
+    opts.forEach(o => {
+      const det = [o.aQ > 0 ? o.aQ + ' взр.' : '', o.cQ > 0 ? o.cQ + ' дет.' : ''].filter(Boolean).join(', ');
+      h += `<div class="sopt"><div><div class="sopt-n">${esc(o.name)}</div><div class="sopt-d">${det}</div></div><div class="sopt-p">${fmt(o.sum)} ฿</div></div>`;
+    });
+    h += '</div></div>';
+  }
+
+  h += `<div class="ct-box"><div class="ctl">ИТОГО К ОПЛАТЕ</div><div class="cta">${fmt(d.total)} ฿</div><div class="ctc">тайских бат (THB)</div></div>`;
+
+  if (d.note) {
+    h += `<div class="card"><div class="card-b"><div style="font-size:9px;font-weight:700;color:var(--text-light);text-transform:uppercase;margin-bottom:3px">📝 Примечание</div><div style="font-size:12px">${esc(d.note)}</div></div></div>`;
+  }
+
+  h += `<div style="text-align:center;font-size:10px;color:var(--text-light);margin-top:16px;padding-bottom:24px">${d.gen ? 'Расчёт от ' + d.gen + ' · ' : ''}Пханг Нга Туры</div>`;
+
+  document.getElementById('clientPage').innerHTML = h;
+}
+
 
     // ============================================================
     // ADMIN (inside booking page)
